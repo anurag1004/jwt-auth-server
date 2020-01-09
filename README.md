@@ -5,7 +5,7 @@ Using JWT token for authorization and maintaining session in node js using expre
 
 
 #./models/user.js
-#./models/issuedToken.js
+./models/issuedToken.js
 
 #PROCESS#
 1.(Registration) User enters the credentials to register, the password is hashed and stored in the database using mongoose driver.
