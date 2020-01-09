@@ -2,7 +2,7 @@
 Using JWT token for authorization and maintaining session in node js using express-session and MongoDB.
 
 #I edited some files in express so that I can add any object to "request", link is below--
-https://truetocode.com/extend-express-request-and-response-typescript-declaration-merging/
+# https://truetocode.com/extend-express-request-and-response-typescript-declaration-merging/
 
 #MONGOOSE MODELS
 
