@@ -1,5 +1,5 @@
 # JWT-token-Auth-using-Express-and-Nodejs
-Using JWT token for authorization and maintaining session in node js using express-session.
+Using JWT token for authorization and maintaining session in node js using express-session and MongoDB.
 
 #MONGOOSE MODELS
 
