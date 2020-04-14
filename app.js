@@ -4,6 +4,7 @@ mongoose = require('mongoose'),
 bcrypt = require('bcrypt'),
 bodyParser = require('body-parser'),
 jwt = require('jsonwebtoken'),
+cors = require('cors'),
 User = require('./models/user.js'),
 Bearer = require('./models/issuedToken.js'),
 config= require('./config.js'),
@@ -17,7 +18,7 @@ mongoose.connect('mongodb://localhost:27017/credentials',{
 });
 app.set('trust proxy', 1);
 app.set('view engine', 'ejs');
-
+app.use(cors())
 app.use(express.static('public'));
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended:true}));
@@ -30,12 +31,6 @@ app.use(require('express-session')({
     cookie: {sameSite: true,maxAge: 60000,httpOnly: true}, //max-age is in miliseconds
     saveUninitialized:false,
   }));
-app.use(function (req, res, next) {
-    res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
-    res.header('Expires', '-1');
-    res.header('Pragma', 'no-cache');
-    next();
-});
 app.disable('x-powered-by');
 
 //protected route
@@ -43,6 +38,8 @@ app.get('/',validate_token,(req, res)=>{
     // console.log(req.cookies);
     console.log("Session "+ req.session);
     console.log(req.user_id);
+    console.log(`REQ-HEADERS`)
+    console.log(req.headers)
     //get the user from the id
     User.findById(req.user_id,(err, user)=>{
         if(err){
@@ -58,6 +55,7 @@ app.get('/',validate_token,(req, res)=>{
 //Routes for login
 app.get('/login',(req, res)=>{
     console.log("Session Active Status "+req.session.status);
+    console.log(req.headers)
     if(req.session.status){
        
         res.redirect('/');
@@ -76,7 +74,7 @@ app.post('/login',(req, res)=>{
             console.log(err);
             res.redirect('/login');
         }else{
-          
+          try{
             if(user.length !=0){
                 bcrypt.compare(password, user.password).then(passwordsMatch=>{
                     if(passwordsMatch){
@@ -115,6 +113,11 @@ app.post('/login',(req, res)=>{
                 console.log("No such user found");
                 res.redirect('/register');
             }
+          }catch(err){
+            console.log("No such user found");
+            res.redirect('/register');
+          }
+            
         }
     })
 });
