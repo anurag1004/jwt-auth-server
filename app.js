@@ -22,7 +22,10 @@ app.use(cors())
 app.use(express.static('public'));
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended:true}));
-
+app.use(function(req, res, next) {
+    res.set('Cache-Control', 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0');
+    next();
+});
 app.use(require('express-session')({
     secret:'PeShVmYq3t6w9z$C&F)J@NcQfTjWnZr4u7x!A%D*G-KaPdSgUkXp2s5v8y/B?E(H', //cookie secret
     name: 'e_session',
@@ -39,7 +42,7 @@ app.get('/',validate_token,(req, res)=>{
     console.log("Session "+ req.session);
     console.log(req.user_id);
     console.log(`REQ-HEADERS`)
-    console.log(req.headers)
+    // console.log(req.headers)
     //get the user from the id
     User.findById(req.user_id,(err, user)=>{
         if(err){
@@ -55,7 +58,7 @@ app.get('/',validate_token,(req, res)=>{
 //Routes for login
 app.get('/login',(req, res)=>{
     console.log("Session Active Status "+req.session.status);
-    console.log(req.headers)
+    // console.log(req.headers)
     if(req.session.status){
        
         res.redirect('/');
@@ -83,7 +86,7 @@ app.post('/login',(req, res)=>{
                     //    expiresIn.setMinutes(date.getMinutes()+1);
                     //    console.log(date.getTime());
                     //    console.log(expiresIn.getTime());
-                        const JWT = create_token(username,"60000"); //1min = 60000ms
+                        // const JWT = create_token(username,"60000"); //1min = 60000ms
                         //store active tokens in the database
                         //if client is trying to log in again then delete all the previous token issued to him//
                         //it is just for extra security//
@@ -94,6 +97,7 @@ app.post('/login',(req, res)=>{
                             if(err){
                                 console.log(err);
                             }else{
+                                const JWT = create_token(username,"60000", issued._id); //1min = 60000ms
                                 //cookie will be deleted after 1min
                                 res.cookie("jwt", JWT, {expire: 60000 + Date.now(),httpOnly: true,sameSite:true});
                                 //managing session using express session, just using to check login status
@@ -185,9 +189,10 @@ app.listen(3000,(req, res)=>{
     console.log("server started at port 3000 --> http://localhost:3000");
 });
 
-function create_token(username,expiresIn){
+function create_token(username, expiresIn, _id){
 
-    const payload = { user: username };
+    const payload = { user: username, _id};
+    console.log(payload)
     const options = { expiresIn:expiresIn, issuer: 'AxDu' };
     const secret = config.jwt_secret;
     const token = jwt.sign(payload, secret, options);
@@ -206,7 +211,7 @@ function validate_token(req, res, next){
         }else{
             console.log(decoded);
             //{ user : ,iat: , exp: , iss}
-            Bearer.find({bearer: decoded.user},(err, foundToken)=>{
+            Bearer.find({_id: decoded._id},(err, foundToken)=>{
                 if(err){
                     console.log(err);
                 }
@@ -221,6 +226,7 @@ function validate_token(req, res, next){
                             console.log("Token couldn't be found!");
 
                             res.clearCookie("jwt"); //user not found on the issued token list
+                            req.session.status = false;
                             res.redirect('/login');
                         }
                     }
