@@ -39,10 +39,10 @@ app.disable('x-powered-by');
 //protected route
 app.get('/',validate_token,(req, res)=>{
     // console.log(req.cookies);
-    console.log("Session "+ req.session);
-    console.log(req.user_id);
-    console.log(`REQ-HEADERS`)
-    // console.log(req.headers)
+    // console.log("Session "+ req.session);
+    // console.log(req.user_id);
+    // console.log(`REQ-HEADERS`)
+    console.log(req.headers["user_id"])
     //get the user from the id
     User.findById(req.user_id,(err, user)=>{
         if(err){
@@ -204,7 +204,7 @@ function validate_token(req, res, next){
     // console.log(client_token);
     jwt.verify(client_token, config.jwt_secret, (err, decoded)=>{
         if(err){
-            console.log(err);
+            // console.log(err);
             console.log("Token Expired!!");
             res.clearCookie("jwt");
             res.redirect("/login");
@@ -218,6 +218,7 @@ function validate_token(req, res, next){
                     else{
                         if(foundToken.length == 1){
                                 req.user_id = foundToken[0].user_id;
+                                req.headers["user_id"] = foundToken[0].user_id;
                                 //append a user object to request header//
                                 //console.log(req.user_id);
                                 next();
